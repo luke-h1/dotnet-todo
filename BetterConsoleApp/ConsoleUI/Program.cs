@@ -1,8 +1,8 @@
 ﻿using System;
 using System.IO;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Serilog;
 
 // DI, serilog & Settings
@@ -10,7 +10,7 @@ using Serilog;
 
 namespace ConsoleUI
 {
-    class Program
+     class Program
     {
         static void Main(string[] args)
         {
@@ -23,12 +23,17 @@ namespace ConsoleUI
                 .WriteTo.Console()
                 .CreateLogger();
 
-                Log.Logger.Information("Application Starting");
-                var host = Host.CreateDefaultBuilder()
-                .ConfigureServices((context, services) => 
-                {
+            Log.Logger.Information("Application Starting");
+            var host = Host.CreateDefaultBuilder()
+            .ConfigureServices((context, services) =>
+            {
+                services.AddTransient<IGreetingService, GreetingService>();
+            })
+            .UseSerilog()
+            .Build();
 
-                }).UseSerilog().Build();
+            var svc = ActivatorUtilities.CreateInstance<GreetingService>(host.Services);
+            svc.Run();
         }
         static void BuildConfig(IConfigurationBuilder builder)
         {
@@ -39,19 +44,5 @@ namespace ConsoleUI
 
         }
     }
-    public class GreetingService 
-    {
-        private readonly ILogger<GreetingService> _log; 
-        public GreetingService(ILogger<GreetingService> log, IConfiguration config)
-        {
-            _log = log; 
-        }
-        public void Run() 
-        {
-            for (var i = 0; i < 10; i++)
-            {
-                
-            }
-        }
-    }
 }
+ 
